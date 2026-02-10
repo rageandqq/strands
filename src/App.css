@@ -358,23 +358,27 @@
   animation: none;
 }
 
-/* Fade out game UI when victory starts */
-.strands-game.victory .game-header,
-.strands-game.victory .grid-container,
-.strands-game.victory .current-word,
-.strands-game.victory .found-words-container {
-  animation: fadeOutDown 0.8s ease-out forwards;
+/* Fade out game UI when victory starts - keep layout intact */
+.strands-game.victory .game-header.victory-hidden,
+.strands-game.victory .current-word.victory-hidden {
+  opacity: 0 !important;
+  animation: none !important;
+  transition: opacity 0.8s ease-out;
+  pointer-events: none;
 }
 
-@keyframes fadeOutDown {
-  0% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(30px);
-  }
+/* Grid fades out but stays in position to preserve layout */
+.strands-game.victory .grid-container.victory-hidden {
+  opacity: 0 !important;
+  animation: none !important;
+  transition: opacity 0.8s ease-out;
+  pointer-events: none;
+}
+
+/* Word bank stays visible and in place during victory */
+.strands-game.victory .found-words-container {
+  opacity: 1;
+  transition: none;
 }
 
 /* Fade out victory emoji during envelope swap */
@@ -450,11 +454,17 @@
     transform: translateX(-50%) scale(1);
     opacity: 1;
   }
-  100% {
+  70% {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) scale(8);
     opacity: 1;
+  }
+  100% {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(8);
+    opacity: 0;
   }
 }
 
@@ -480,12 +490,12 @@
 
 .victory-animations.envelope-swap .victory-emoji {
   opacity: 0;
-  transition: opacity 2s ease-in-out;
+  transition: opacity 2.5s ease-in-out;
 }
 
 .victory-animations.envelope-swap .victory-envelope {
   opacity: 1;
-  transition: opacity 2s ease-in-out;
+  transition: opacity 2.5s ease-in-out;
 }
 
 .victory-animations.letter-open .victory-envelope,
@@ -599,6 +609,20 @@
 .letter-sameer {
   background: #87CEEB;
   color: #000;
+}
+
+/* Victory words styling */
+.found-words.victory-words {
+  background: transparent;
+}
+
+.found-words.victory-words h2 {
+  opacity: 0;
+  transition: opacity 0.5s ease-out;
+}
+
+.victory-word {
+  display: inline-block;
 }
 
 @media (max-width: 480px) {

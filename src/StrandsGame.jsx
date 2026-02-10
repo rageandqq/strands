@@ -362,6 +362,10 @@ export default function StrandsGame() {
       if (e.key === 'x' || e.key === 'X') {
         if (victoryPhase === 'none') {
           clearTimers();
+          // Populate all words in the bank with correct colors
+          setFoundWords(ALL_WORDS);
+          // Mark all cells as found (simplified for dev mode)
+          setCellStates({});
           setShowConfetti(true);
           setTimeout(() => {
             setVictoryPhase('emoji-move');
@@ -483,16 +487,17 @@ export default function StrandsGame() {
         </div>
       )}
       
-      {introPhase === 'complete' && victoryPhase === 'none' && (
+      {introPhase === 'complete' && (
         <>
-          <div className="game-header">
+          {/* Game UI - always rendered, fades out during victory */}
+          <div className={`game-header ${victoryPhase !== 'none' ? 'victory-hidden' : ''}`}>
             <h1>💌</h1>
             <p className={`theme ${isPhraseVisible ? 'visible' : 'hidden'} ${isWordFound ? 'word-found' : ''}`}>
               {ROTATING_PHRASES[phraseIndex](foundWords.length)}
             </p>
           </div>
           
-          <div className="grid-container" ref={gridRef}>
+          <div className={`grid-container ${victoryPhase !== 'none' ? 'victory-hidden' : ''}`} ref={gridRef}>
             <svg className="grid-lines">
               {/* eslint-disable-next-line react-hooks/refs */}
               {foundPaths.map((path, index) => (
@@ -542,26 +547,37 @@ export default function StrandsGame() {
             </div>
           </div>
           
-          <div className="current-word">
+          <div className={`current-word ${victoryPhase !== 'none' ? 'victory-hidden' : ''}`}>
             {currentWord}
           </div>
           
+          {/* Word Bank - always rendered, content changes based on phase */}
           <div className="found-words-container">
-            {foundWords.length > 0 && (
-              <div className="found-words">
-                <h2>Words Found</h2>
-                <div className="words-list">
-                  {foundWords.map(word => (
+            <div className={`found-words ${victoryPhase !== 'none' ? 'victory-words' : ''}`}>
+              <h2>Words Found</h2>
+              <div className="words-list">
+                {victoryPhase === 'none' ? (
+                  foundWords.map(word => (
                     <span 
                       key={word} 
                       className={`word-tag ${word === SPANGRAM ? 'spangram' : 'found'}`}
                     >
                       {word}
                     </span>
-                  ))}
-                </div>
+                  ))
+                ) : (
+                  ALL_WORDS.map((word) => (
+                    <span 
+                      key={word}
+                      className={`word-tag victory-word ${word === SPANGRAM ? 'spangram' : 'found'}`}
+                      data-word={word}
+                    >
+                      {word}
+                    </span>
+                  ))
+                )}
               </div>
-            )}
+            </div>
           </div>
         </>
       )}
