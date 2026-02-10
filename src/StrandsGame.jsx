@@ -17,8 +17,8 @@ const SPANGRAM = 'BEMYVALENTINE';
 const ALL_WORDS = [...THEME_WORDS, SPANGRAM];
 
 export default function StrandsGame() {
-  const [introPhase, setIntroPhase] = useState('rising');
-  const [showRadialPulse, setShowRadialPulse] = useState(false);
+  const [introPhase, setIntroPhase] = useState('intro');
+  const [showClickPulse, setShowClickPulse] = useState(false);
   const [selectedCells, setSelectedCells] = useState([]);
   const [foundWords, setFoundWords] = useState([]);
   const [cellStates, setCellStates] = useState({});
@@ -29,31 +29,24 @@ export default function StrandsGame() {
   const [tempPath, setTempPath] = useState([]);
   const gridRef = useRef(null);
 
-  // Intro animation sequence
+  // Intro animation - spin and grow from center
   useEffect(() => {
-    if (introPhase === 'rising') {
-      const timer = setTimeout(() => {
-        setIntroPhase('spiraling');
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-    
-    if (introPhase === 'spiraling') {
+    if (introPhase === 'intro') {
       const timer = setTimeout(() => {
         setIntroPhase('hovering');
-      }, 2000);
+      }, 3000); // 3s for spin and grow animation
       return () => clearTimeout(timer);
     }
   }, [introPhase]);
 
   const handleEnvelopeClick = () => {
     if (introPhase === 'hovering') {
-      setShowRadialPulse(true);
+      setShowClickPulse(true);
       setIntroPhase('transitioning');
       
       setTimeout(() => {
         setIntroPhase('complete');
-      }, 600);
+      }, 800);
     }
   };
 
@@ -257,7 +250,14 @@ export default function StrandsGame() {
           onClick={handleEnvelopeClick}
         >
           <span className="envelope-emoji">💌</span>
-          {showRadialPulse && <div className="radial-pulse"></div>}
+          {introPhase === 'hovering' && (
+            <div className="radial-rings">
+              <div className="ring ring-1"></div>
+              <div className="ring ring-2"></div>
+              <div className="ring ring-3"></div>
+            </div>
+          )}
+          {showClickPulse && <div className="radial-pulse-click"></div>}
         </div>
       )}
       
