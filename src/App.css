@@ -377,10 +377,21 @@
   pointer-events: none;
 }
 
-/* Word bank stays visible and in place during victory */
-.strands-game.victory .found-words-container {
-  opacity: 1;
-  transition: none;
+/* Word bank fades out when showWordBank is false (after letter opens but before words fly in) */
+.strands-game.victory .found-words-container.hidden,
+.strands-game.victory .found-words-container.hidden .found-words {
+  opacity: 0 !important;
+  animation: none !important;
+  transition: opacity 0.8s ease-out !important;
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1 !important;
+  }
+  to {
+    opacity: 0 !important;
+  }
 }
 
 /* Fade out victory emoji during envelope swap */

@@ -66,6 +66,7 @@ export default function StrandsGame() {
   const [victoryPhase, setVictoryPhase] = useState('none');
   const [showConfetti, setShowConfetti] = useState(false);
   const [confettiPieces, setConfettiPieces] = useState([]);
+  const [showWordBank, setShowWordBank] = useState(true);
   
   // Refs
   const gridRef = useRef(null);
@@ -396,11 +397,21 @@ export default function StrandsGame() {
     }
 
     if (victoryPhase === 'letter-open') {
-      // Letter opens and words start flying in
-      const timer = setTimeout(() => {
+      // Letter opens and slides up (2s animation)
+      // After letter completes animation, hide word bank
+      const fadeTimer = setTimeout(() => {
+        setShowWordBank(false);
+      }, 2500);
+
+      // Start words flying in after word bank fades out
+      const flyInTimer = setTimeout(() => {
         setVictoryPhase('words-fly-in');
-      }, 2000);
-      return () => clearTimeout(timer);
+      }, 3500);
+
+      return () => {
+        clearTimeout(fadeTimer);
+        clearTimeout(flyInTimer);
+      };
     }
   }, [victoryPhase]);
 
@@ -551,7 +562,7 @@ export default function StrandsGame() {
           </div>
           
           {/* Word Bank - always rendered, content changes based on phase */}
-          <div className="found-words-container">
+          <div className={`found-words-container ${!showWordBank ? 'hidden' : ''} ${victoryPhase === 'words-fly-in' ? 'words-flying' : ''}`}>
             <div className={`found-words ${victoryPhase !== 'none' ? 'victory-words' : ''}`}>
               {foundWords.length > 0 && <h2>Words Found</h2>}
               <div className="words-list">
