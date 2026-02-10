@@ -368,7 +368,9 @@
 }
 
 /* Grid fades out but stays in position to preserve layout */
-.strands-game.victory .grid-container.victory-hidden {
+.strands-game.victory .grid-container.victory-hidden,
+.strands-game.victory .grid-container.victory-hidden .grid-lines,
+.strands-game.victory .grid-container.victory-hidden .grid-lines line {
   opacity: 0 !important;
   animation: none !important;
   transition: opacity 0.8s ease-out;
@@ -386,7 +388,7 @@
 .victory-animations.letter-open .victory-emoji,
 .victory-animations.words-fly-in .victory-emoji {
   opacity: 0;
-  transition: opacity 2s ease-in-out;
+  transition: opacity 3s ease-in-out;
 }
 
 .confetti-container {
@@ -454,7 +456,7 @@
     transform: translateX(-50%) scale(1);
     opacity: 1;
   }
-  70% {
+  85% {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) scale(8);
@@ -495,12 +497,19 @@
 
 .victory-animations.envelope-swap .victory-envelope {
   opacity: 1;
-  transition: opacity 2.5s ease-in-out;
+  transition: opacity 3s ease-in-out;
 }
 
 .victory-animations.letter-open .victory-envelope,
 .victory-animations.words-fly-in .victory-envelope {
-  opacity: 1;
+  opacity: 0;
+  transition: opacity 1s ease-in-out;
+}
+
+.victory-animations.letter-open .envelope-flap,
+.victory-animations.words-fly-in .envelope-flap {
+  opacity: 0;
+  transition: opacity 1s ease-in-out;
 }
 
 .victory-letter {
@@ -510,8 +519,8 @@
   transform: translate(-50%, -50%);
   width: 600px;
   max-width: 90vw;
-  height: 400px;
-  max-height: 70vh;
+  height: 500px;
+  max-height: 80vh;
   background: white;
   border-radius: 8px;
   box-shadow: 0 10px 40px rgba(0,0,0,0.2);
@@ -539,25 +548,52 @@
 .letter-content {
   padding: 40px;
   font-family: 'Roboto', Arial, sans-serif;
-  font-size: 1.2rem;
-  line-height: 1.8;
+  font-size: 1rem;
+  line-height: 1.5;
   color: #333;
-  white-space: pre-wrap;
-  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  flex-grow: 1;
 }
 
 .letter-line {
-  display: inline;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.letter-line.spacer-line {
+  flex-grow: 1;
+}
+
+.letter-line.center-line {
+  justify-content: center;
+}
+
+.letter-line.right-line {
+  justify-content: flex-end;
+}
+
+.letter-line.anchored-bottom {
+  margin-top: auto;
+}
+
+.letter-line span:not(.letter-word) {
+  font-size: 1.1rem;
 }
 
 .letter-word {
   display: inline-block;
-  font-weight: bold;
-  border-radius: 4px;
-  padding: 2px 6px;
-  margin: 0 2px;
+  font-weight: 500;
+  border-radius: 20px;
+  padding: 0.3rem 0.8rem;
+  margin: 0;
   opacity: 0;
   transform: translateY(50px);
+  font-size: 0.9rem;
 }
 
 .letter-word.animate-in {
@@ -633,21 +669,20 @@
   .game-header h1 {
     font-size: 4rem;
   }
-  
-  .victory-letter {
-    width: 90vw;
-    height: 60vh;
+
+  .found-words-container {
+    margin-bottom: 2rem;
   }
-  
+
   .letter-content {
-    padding: 20px;
+    padding: 40px;
     font-size: 1rem;
   }
-  
+    
   .victory-emoji {
     font-size: 3rem;
   }
-  
+    
   .victory-envelope {
     font-size: 3rem;
   }

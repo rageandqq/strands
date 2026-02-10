@@ -364,8 +364,7 @@ export default function StrandsGame() {
           clearTimers();
           // Populate all words in the bank with correct colors
           setFoundWords(ALL_WORDS);
-          // Mark all cells as found (simplified for dev mode)
-          setCellStates({});
+          // Keep existing cell states to preserve circles on already found words
           setShowConfetti(true);
           setTimeout(() => {
             setVictoryPhase('emoji-move');
@@ -554,9 +553,7 @@ export default function StrandsGame() {
           {/* Word Bank - always rendered, content changes based on phase */}
           <div className="found-words-container">
             <div className={`found-words ${victoryPhase !== 'none' ? 'victory-words' : ''}`}>
-              {victoryPhase === 'none' && foundWords.length > 0 && (
-                <h2>Words Found</h2>
-              )}
+              {foundWords.length > 0 && <h2>Words Found</h2>}
               <div className="words-list">
                 {victoryPhase === 'none' ? (
                   foundWords.map(word => (
@@ -609,23 +606,42 @@ export default function StrandsGame() {
           <div className="envelope-flap"></div>
           <div className="victory-letter">
             <div className="letter-content">
-              <div className="letter-line">Dear</div>
-              <div className={`letter-word letter-siddhi ${victoryPhase === 'words-fly-in' ? 'animate-in' : ''}`} style={{ '--delay': '0s' }}>SIDDHI</div>
-              <div className="letter-line">,</div>
-              <div className="letter-line"></div>
-              <div className={`letter-word letter-cupid ${victoryPhase === 'words-fly-in' ? 'animate-in' : ''}`} style={{ '--delay': '0.8s' }}>CUPID</div>
-              <div className="letter-line">said I'd be a fool</div>
-              <div className={`letter-word letter-tulip ${victoryPhase === 'words-fly-in' ? 'animate-in' : ''}`} style={{ '--delay': '1.6s' }}>TULIP</div>
-              <div className="letter-line">you go to</div>
-              <div className={`letter-word letter-puntacana ${victoryPhase === 'words-fly-in' ? 'animate-in' : ''}`} style={{ '--delay': '2.4s' }}>PUNTACANA</div>
-              <div className="letter-line">without asking...</div>
-              <div className="letter-line"></div>
-              <div className={`letter-word letter-spangram ${victoryPhase === 'words-fly-in' ? 'animate-in' : ''}`} style={{ '--delay': '3.2s' }}>BEMYVALENTINE</div>
-              <div className="letter-line">?</div>
-              <div className="letter-line"></div>
-              <div className={`letter-word letter-love ${victoryPhase === 'words-fly-in' ? 'animate-in' : ''}`} style={{ '--delay': '4s' }}>LOVE</div>
-              <div className="letter-line">,</div>
-              <div className={`letter-word letter-sameer ${victoryPhase === 'words-fly-in' ? 'animate-in' : ''}`} style={{ '--delay': '4.8s' }}>SAMEER</div>
+              <div className="letter-line">
+                <span>Dear</span>
+                <span className={`letter-word letter-siddhi ${victoryPhase === 'words-fly-in' ? 'animate-in' : ''}`} style={{ '--delay': '0s' }}>SIDDHI</span>
+                <span>,</span>
+              </div>
+              <div className="letter-line spacer-line"></div>
+              <div className="letter-line">
+                <span className={`letter-word letter-cupid ${victoryPhase === 'words-fly-in' ? 'animate-in' : ''}`} style={{ '--delay': '0.8s' }}>CUPID</span>
+                <span>said I'd be a fool</span>
+              </div>
+              <div className="letter-line">
+                <span className={`letter-word letter-tulip ${victoryPhase === 'words-fly-in' ? 'animate-in' : ''}`} style={{ '--delay': '1.6s' }}>TULIP</span>
+                <span>you go to</span>
+                <span className={`letter-word letter-puntacana ${victoryPhase === 'words-fly-in' ? 'animate-in' : ''}`} style={{ '--delay': '2.4s' }}>PUNTACANA</span>
+              </div>
+              <div className="letter-line">
+                <span>without asking...</span>
+              </div>
+              <div className="letter-line spacer-line"></div>
+              <div className="letter-line spacer-line"></div>
+              <div className="letter-line center-line">
+                <span>Will you</span>
+                <span className={`letter-word letter-spangram ${victoryPhase === 'words-fly-in' ? 'animate-in' : ''}`} style={{ '--delay': '3.2s' }}>BEMYVALENTINE</span>
+                <span>?</span>
+              </div>
+              <div className="letter-line spacer-line"></div>
+              <div className="letter-line spacer-line"></div>
+              <div className="letter-line spacer-line"></div>
+              <div className="letter-line spacer-line"></div>
+              <div className="letter-line right-line anchored-bottom">
+                <span className={`letter-word letter-love ${victoryPhase === 'words-fly-in' ? 'animate-in' : ''}`} style={{ '--delay': '4s' }}>LOVE</span>
+                <span>,</span>
+              </div>
+              <div className="letter-line right-line anchored-bottom">
+                <span className={`letter-word letter-sameer ${victoryPhase === 'words-fly-in' ? 'animate-in' : ''}`} style={{ '--delay': '4.8s' }}>SAMEER</span>
+              </div>
             </div>
           </div>
         </div>
