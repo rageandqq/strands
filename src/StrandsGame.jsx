@@ -554,7 +554,9 @@ export default function StrandsGame() {
           {/* Word Bank - always rendered, content changes based on phase */}
           <div className="found-words-container">
             <div className={`found-words ${victoryPhase !== 'none' ? 'victory-words' : ''}`}>
-              <h2>Words Found</h2>
+              {victoryPhase === 'none' && foundWords.length > 0 && (
+                <h2>Words Found</h2>
+              )}
               <div className="words-list">
                 {victoryPhase === 'none' ? (
                   foundWords.map(word => (
