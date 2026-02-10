@@ -17,6 +17,8 @@ const SPANGRAM = 'BEMYVALENTINE';
 const ALL_WORDS = [...THEME_WORDS, SPANGRAM];
 
 export default function StrandsGame() {
+  const [introPhase, setIntroPhase] = useState('rising');
+  const [showRadialPulse, setShowRadialPulse] = useState(false);
   const [selectedCells, setSelectedCells] = useState([]);
   const [foundWords, setFoundWords] = useState([]);
   const [cellStates, setCellStates] = useState({});
@@ -26,6 +28,34 @@ export default function StrandsGame() {
   const [foundPaths, setFoundPaths] = useState([]);
   const [tempPath, setTempPath] = useState([]);
   const gridRef = useRef(null);
+
+  // Intro animation sequence
+  useEffect(() => {
+    if (introPhase === 'rising') {
+      const timer = setTimeout(() => {
+        setIntroPhase('spiraling');
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+    
+    if (introPhase === 'spiraling') {
+      const timer = setTimeout(() => {
+        setIntroPhase('hovering');
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [introPhase]);
+
+  const handleEnvelopeClick = () => {
+    if (introPhase === 'hovering') {
+      setShowRadialPulse(true);
+      setIntroPhase('transitioning');
+      
+      setTimeout(() => {
+        setIntroPhase('complete');
+      }, 600);
+    }
+  };
 
   const getCellKey = (row, col) => `${row},${col}`;
 
@@ -216,84 +246,101 @@ export default function StrandsGame() {
     return lines;
   };
 
+  // Intro envelope phase
+  const isIntro = introPhase !== 'complete';
+
   return (
     <div className={`strands-game ${shake ? 'shake' : ''}`}>
-      <div className="game-header">
-        <h1>Will You?</h1>
-        <p className="theme">{foundWords.length} of {ALL_WORDS.length} words found</p>
-      </div>
-      
-      <div className="grid-container" ref={gridRef}>
-        <svg className="grid-lines">
-          {/* Render lines for found words */}
-          {foundPaths.map((path, index) => (
-            <g key={`found-${index}`}>
-              {renderLines(path.cells, path.isSpangram ? '#DAA520' : '#5DADE2')}
-            </g>
-          ))}
-          {/* Render lines for current selection */}
-          {isDragging && tempPath.length > 1 && (
-            <g>
-              {renderLines(tempPath, '#808080')}
-            </g>
-          )}
-        </svg>
-        
-        <div className="grid">
-          {GRID.map((row, rowIndex) =>
-            row.map((letter, colIndex) => (
-              <div
-                key={getCellKey(rowIndex, colIndex)}
-                className={getCellClass(rowIndex, colIndex)}
-                onMouseDown={() => handleCellDown(rowIndex, colIndex)}
-                onMouseEnter={() => handleCellEnter(rowIndex, colIndex)}
-                onTouchStart={(e) => {
-                  e.preventDefault();
-                  handleCellDown(rowIndex, colIndex);
-                }}
-                onTouchMove={(e) => {
-                  e.preventDefault();
-                  const touch = e.touches[0];
-                  const element = document.elementFromPoint(touch.clientX, touch.clientY);
-                  if (element && element.classList.contains('cell')) {
-                    const dataRow = parseInt(element.getAttribute('data-row'));
-                    const dataCol = parseInt(element.getAttribute('data-col'));
-                    if (!isNaN(dataRow) && !isNaN(dataCol)) {
-                      handleCellEnter(dataRow, dataCol);
-                    }
-                  }
-                }}
-                data-row={rowIndex}
-                data-col={colIndex}
-              >
-                {letter}
-              </div>
-            ))
-          )}
+      {isIntro && (
+        <div 
+          className={`intro-envelope ${introPhase}`} 
+          onClick={handleEnvelopeClick}
+        >
+          <span className="envelope-emoji">💌</span>
+          {showRadialPulse && <div className="radial-pulse"></div>}
         </div>
-      </div>
+      )}
       
-      <div className="current-word">
-        {currentWord}
-      </div>
-      
-      <div className="found-words-container">
-        {foundWords.length > 0 && (
-          <div className="found-words">
-            <h2>Words Found</h2>
-            <div className="words-list">
-              {foundWords.map(word => (
-                <span 
-                  key={word} 
-                  className={`word-tag ${word === SPANGRAM ? 'spangram' : 'found'}`}
-                >
-                  {word}
-                </span>
+      {introPhase === 'complete' && (
+        <>
+          <div className="game-header">
+            <h1>💌</h1>
+            <p className="theme">{foundWords.length} of {ALL_WORDS.length} words found</p>
+          </div>
+          
+          <div className="grid-container" ref={gridRef}>
+            <svg className="grid-lines">
+              {/* Render lines for found words */}
+              {foundPaths.map((path, index) => (
+                <g key={`found-${index}`}>
+                  {renderLines(path.cells, path.isSpangram ? '#DAA520' : '#5DADE2')}
+                </g>
               ))}
+              {/* Render lines for current selection */}
+              {isDragging && tempPath.length > 1 && (
+                <g>
+                  {renderLines(tempPath, '#808080')}
+                </g>
+              )}
+            </svg>
+            
+            <div className="grid">
+              {GRID.map((row, rowIndex) =>
+                row.map((letter, colIndex) => (
+                  <div
+                    key={getCellKey(rowIndex, colIndex)}
+                    className={getCellClass(rowIndex, colIndex)}
+                    onMouseDown={() => handleCellDown(rowIndex, colIndex)}
+                    onMouseEnter={() => handleCellEnter(rowIndex, colIndex)}
+                    onTouchStart={(e) => {
+                      e.preventDefault();
+                      handleCellDown(rowIndex, colIndex);
+                    }}
+                    onTouchMove={(e) => {
+                      e.preventDefault();
+                      const touch = e.touches[0];
+                      const element = document.elementFromPoint(touch.clientX, touch.clientY);
+                      if (element && element.classList.contains('cell')) {
+                        const dataRow = parseInt(element.getAttribute('data-row'));
+                        const dataCol = parseInt(element.getAttribute('data-col'));
+                        if (!isNaN(dataRow) && !isNaN(dataCol)) {
+                          handleCellEnter(dataRow, dataCol);
+                        }
+                      }
+                    }}
+                    data-row={rowIndex}
+                    data-col={colIndex}
+                  >
+                    {letter}
+                  </div>
+                ))
+              )}
             </div>
           </div>
-        )}
-      </div>
+          
+          <div className="current-word">
+            {currentWord}
+          </div>
+          
+          <div className="found-words-container">
+            {foundWords.length > 0 && (
+              <div className="found-words">
+                <h2>Words Found</h2>
+                <div className="words-list">
+                  {foundWords.map(word => (
+                    <span 
+                      key={word} 
+                      className={`word-tag ${word === SPANGRAM ? 'spangram' : 'found'}`}
+                    >
+                      {word}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }

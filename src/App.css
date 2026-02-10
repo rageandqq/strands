@@ -6,11 +6,129 @@
   padding: 0.5rem;
   width: 100%;
   min-height: 100vh;
+  position: relative;
 }
 
+/* Intro Envelope Styles */
+.intro-envelope {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  z-index: 100;
+}
+
+.envelope-emoji {
+  font-size: 4rem;
+  display: block;
+}
+
+.intro-envelope.rising {
+  animation: riseFromBottom 0.5s ease-out forwards;
+}
+
+.intro-envelope.spiraling {
+  animation: clockwiseSpiral 2s ease-in-out forwards;
+}
+
+.intro-envelope.hovering {
+  animation: gentleFloat 2s ease-in-out infinite, scalePulse 1.5s ease-in-out infinite;
+}
+
+.intro-envelope.transitioning {
+  animation: flyToTitle 0.6s ease-in-out forwards;
+}
+
+.radial-pulse {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 187, 193, 0.6) 0%, rgba(255, 187, 193, 0) 70%);
+  animation: radialPulseExpand 0.6s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes riseFromBottom {
+  0% {
+    transform: translate(-50%, 100vh) scale(0.5);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-50%, 0) scale(1.5);
+    opacity: 1;
+  }
+}
+
+@keyframes clockwiseSpiral {
+  0% {
+    transform: translate(-50%, 0) scale(1.5) rotate(0deg);
+  }
+  25% {
+    transform: translate(calc(-50% + 50px), -30px) scale(1.7) rotate(180deg);
+  }
+  50% {
+    transform: translate(-50%, -60px) scale(1.9) rotate(360deg);
+  }
+  75% {
+    transform: translate(calc(-50% - 50px), -30px) scale(2) rotate(540deg);
+  }
+  100% {
+    transform: translate(-50%, 0) scale(2) rotate(720deg);
+  }
+}
+
+@keyframes gentleFloat {
+  0%, 100% {
+    transform: translate(-50%, 0) scale(2);
+  }
+  50% {
+    transform: translate(-50%, -10px) scale(2);
+  }
+}
+
+@keyframes scalePulse {
+  0%, 100% {
+    transform: translate(-50%, 0) scale(2);
+  }
+  50% {
+    transform: translate(-50%, 0) scale(2.05);
+  }
+}
+
+@keyframes flyToTitle {
+  0% {
+    transform: translate(-50%, 0) scale(2);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -35vh) scale(0.8);
+    opacity: 0;
+  }
+}
+
+@keyframes radialPulseExpand {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+
+/* Game Header */
 .game-header {
   text-align: center;
   margin-bottom: 0.5rem;
+  animation: fadeInUp 0.4s ease-out forwards;
+  animation-delay: 0.2s;
+  opacity: 0;
 }
 
 .game-header h1 {
@@ -25,11 +143,26 @@
   margin: 0;
 }
 
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Grid */
 .grid-container {
   position: relative;
   width: 100%;
   max-width: 400px;
   background: #fff;
+  animation: fadeInUp 0.4s ease-out forwards;
+  animation-delay: 0.4s;
+  opacity: 0;
 }
 
 .grid-lines {
@@ -105,6 +238,9 @@
   min-height: 2rem;
   color: #000;
   letter-spacing: 2px;
+  animation: fadeInUp 0.4s ease-out forwards;
+  animation-delay: 0.4s;
+  opacity: 0;
 }
 
 .found-words-container {
@@ -112,6 +248,9 @@
   text-align: center;
   width: 100%;
   min-height: 80px;
+  animation: fadeInUp 0.4s ease-out forwards;
+  animation-delay: 0.4s;
+  opacity: 0;
 }
 
 .found-words h2 {
