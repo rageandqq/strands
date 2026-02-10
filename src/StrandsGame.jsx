@@ -57,14 +57,49 @@ export default function StrandsGame() {
   
   // Rotating phrase state
   const [phraseIndex, setPhraseIndex] = useState(0);
+  // eslint-disable-next-line no-unused-vars
   const [availableIndices, setAvailableIndices] = useState(() => createShuffledIndices());
   const [isPhraseVisible, setIsPhraseVisible] = useState(true);
   const [isWordFound, setIsWordFound] = useState(false);
+  
+  // Victory state
+  const [victoryPhase, setVictoryPhase] = useState('none');
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [confettiPieces, setConfettiPieces] = useState([]);
   
   // Refs
   const gridRef = useRef(null);
   const timerRef = useRef(null);
   const boldTimerRef = useRef(null);
+  const scheduleNextPhraseRef = useRef(null);
+
+  // Helper functions
+  const getCellKey = (row, col) => `${row},${col}`;
+
+  const getCellCenter = (row, col) => {
+    if (!gridRef.current) return { x: 0, y: 0 };
+    const grid = gridRef.current.querySelector('.grid');
+    const cell = grid?.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+    if (!cell) return { x: 0, y: 0 };
+    
+    const gridRect = grid.getBoundingClientRect();
+    const cellRect = cell.getBoundingClientRect();
+    
+    return {
+      x: cellRect.left - gridRect.left + cellRect.width / 2,
+      y: cellRect.top - gridRect.top + cellRect.height / 2
+    };
+  };
+
+  const isAdjacent = (r1, c1, r2, c2) => {
+    const dr = Math.abs(r1 - r2);
+    const dc = Math.abs(c1 - c2);
+    return dr <= 1 && dc <= 1 && !(dr === 0 && dc === 0);
+  };
+
+  const getWordFromCells = (cells) => {
+    return cells.map(([r, c]) => GRID[r][c]).join('');
+  };
 
   // Clear all phrase rotation timers to prevent conflicts
   const clearTimers = () => {
@@ -73,7 +108,7 @@ export default function StrandsGame() {
   };
 
   // Get the next random phrase from the shuffled pool
-  const getNextRandomPhrase = () => {
+  const getNextRandomPhrase = useCallback(() => {
     setAvailableIndices(prev => {
       if (prev.length === 0) {
         // All phrases shown, create new shuffled pool
@@ -86,21 +121,81 @@ export default function StrandsGame() {
         return prev.slice(1);
       }
     });
-  };
+  }, []);
 
-  // Schedule the next phrase in the rotation sequence
-  const scheduleNextPhrase = () => {
-    const nextDelay = 5000 + Math.random() * 3000;
-    
-    timerRef.current = setTimeout(() => {
-      setIsPhraseVisible(false);
-      
+  // Set up scheduleNextPhrase function in ref
+  useEffect(() => {
+    scheduleNextPhraseRef.current = () => {
+      const nextDelay = 5000 + Math.random() * 3000;
+
       timerRef.current = setTimeout(() => {
-        getNextRandomPhrase();
-        setIsPhraseVisible(true);
-        scheduleNextPhrase();
-      }, 500);
-    }, nextDelay);
+        setIsPhraseVisible(false);
+
+        timerRef.current = setTimeout(() => {
+          // Get next phrase
+          getNextRandomPhrase();
+          setIsPhraseVisible(true);
+          if (scheduleNextPhraseRef.current) {
+            scheduleNextPhraseRef.current();
+          }
+        }, 500);
+      }, nextDelay);
+    };
+  }, [getNextRandomPhrase]);
+
+  // Handle cell interactions
+  const handleCellDown = useCallback((row, col) => {
+    setIsDragging(true);
+    setSelectedCells([[row, col]]);
+    setTempPath([[row, col]]);
+    setCurrentWord(GRID[row][col]);
+  }, []);
+
+  const handleCellEnter = useCallback((row, col) => {
+    if (!isDragging) return;
+
+    setSelectedCells(prev => {
+      const lastCell = prev[prev.length - 1];
+
+      // If going back to previous cell, remove last
+      if (prev.length >= 2) {
+        const prevCell = prev[prev.length - 2];
+        if (prevCell[0] === row && prevCell[1] === col) {
+          const newSelection = prev.slice(0, -1);
+          const newPath = tempPath.slice(0, -1);
+          setTempPath(newPath);
+          setCurrentWord(getWordFromCells(newSelection));
+          return newSelection;
+        }
+      }
+
+      // Check if already selected
+      const alreadySelected = prev.some(([r, c]) => r === row && c === col);
+      if (alreadySelected) return prev;
+
+      // Check adjacency
+      if (lastCell && !isAdjacent(lastCell[0], lastCell[1], row, col)) {
+        return prev;
+      }
+
+      const newSelection = [...prev, [row, col]];
+      const newPath = [...tempPath, [row, col]];
+      setTempPath(newPath);
+      setCurrentWord(getWordFromCells(newSelection));
+      return newSelection;
+    });
+  }, [isDragging, tempPath]);
+
+  const handleEnvelopeClick = () => {
+    if (introPhase === 'hovering') {
+      clearTimers();
+      setShowClickPulse(true);
+      setIntroPhase('transitioning');
+
+      setTimeout(() => {
+        setIntroPhase('complete');
+      }, 800);
+    }
   };
 
   // Intro animation - after 3s of spinAndGrow, transition to hovering state
@@ -118,104 +213,50 @@ export default function StrandsGame() {
     if (introPhase === 'complete') {
       timerRef.current = setTimeout(() => {
         setIsPhraseVisible(false);
-        
+
         timerRef.current = setTimeout(() => {
           // Start with first random phrase
           getNextRandomPhrase();
           setIsPhraseVisible(true);
-          scheduleNextPhrase();
+          if (scheduleNextPhraseRef.current) {
+            scheduleNextPhraseRef.current();
+          }
         }, 500);
       }, 5000);
-      
+
       return () => clearTimers();
     }
-  }, [introPhase]);
+  }, [introPhase, getNextRandomPhrase]);
 
   // When a word is found, reset to count
   useEffect(() => {
     if (foundWords.length > 0 && introPhase === 'complete') {
       clearTimers();
-      
+
+      // Reset to count phrase - intentional setState in response to foundWords change
       setPhraseIndex(0);
       setIsPhraseVisible(true);
       setIsWordFound(true);
-      
+
       boldTimerRef.current = setTimeout(() => {
         setIsWordFound(false);
       }, 2000);
-      
+
       // After bold fades, continue rotation with random phrase
       timerRef.current = setTimeout(() => {
         setIsPhraseVisible(false);
-        
+
         timerRef.current = setTimeout(() => {
           // Pick a random phrase to continue with
           getNextRandomPhrase();
           setIsPhraseVisible(true);
-          scheduleNextPhrase();
+          if (scheduleNextPhraseRef.current) {
+            scheduleNextPhraseRef.current();
+          }
         }, 500);
       }, 3000);
     }
-  }, [foundWords.length, introPhase]);
-
-  const handleEnvelopeClick = () => {
-    clearTimers();
-    setShowClickPulse(true);
-    setIntroPhase('transitioning');
-    
-    setTimeout(() => {
-      setIntroPhase('complete');
-    }, 800);
-  };
-
-  const getCellKey = (row, col) => `${row},${col}`;
-
-  const isAdjacent = (r1, c1, r2, c2) => {
-    const dr = Math.abs(r1 - r2);
-    const dc = Math.abs(c1 - c2);
-    return dr <= 1 && dc <= 1 && (dr !== 0 || dc !== 0);
-  };
-
-  const getWordFromCells = (cells) => {
-    return cells.map(([row, col]) => GRID[row][col]).join('');
-  };
-
-  const handleCellEnter = useCallback((row, col) => {
-    if (!isDragging) return;
-    
-    setSelectedCells(prev => {
-      const lastCell = prev[prev.length - 1];
-      
-      if (prev.length >= 2) {
-        const prevCell = prev[prev.length - 2];
-        if (prevCell[0] === row && prevCell[1] === col) {
-          const newSelection = prev.slice(0, -1);
-          setCurrentWord(getWordFromCells(newSelection));
-          setTempPath(newSelection);
-          return newSelection;
-        }
-      }
-      
-      const alreadySelected = prev.some(([r, c]) => r === row && c === col);
-      if (alreadySelected) return prev;
-      
-      if (lastCell && !isAdjacent(lastCell[0], lastCell[1], row, col)) {
-        return prev;
-      }
-      
-      const newSelection = [...prev, [row, col]];
-      setCurrentWord(getWordFromCells(newSelection));
-      setTempPath(newSelection);
-      return newSelection;
-    });
-  }, [isDragging]);
-
-  const handleCellDown = useCallback((row, col) => {
-    setIsDragging(true);
-    setSelectedCells([[row, col]]);
-    setTempPath([[row, col]]);
-    setCurrentWord(GRID[row][col]);
-  }, []);
+  }, [foundWords.length, introPhase, getNextRandomPhrase]);
 
   const handleEnd = useCallback(() => {
     if (!isDragging) return;
@@ -288,12 +329,77 @@ export default function StrandsGame() {
 
     document.addEventListener('mouseup', handleGlobalUp);
     document.addEventListener('touchend', handleGlobalUp);
-    
+
     return () => {
       document.removeEventListener('mouseup', handleGlobalUp);
       document.removeEventListener('touchend', handleGlobalUp);
     };
   }, [isDragging, handleEnd]);
+
+  // Trigger victory animation when all words found
+  useEffect(() => {
+    if (foundWords.length === ALL_WORDS.length && victoryPhase === 'none') {
+      clearTimers();
+
+      // Start confetti
+      setShowConfetti(true);
+
+      // Pause for 2 seconds to let confetti start falling before starting emoji animation
+      setTimeout(() => {
+        setVictoryPhase('emoji-move');
+      }, 2000);
+    }
+  }, [foundWords.length, victoryPhase]);
+
+  // Keyboard shortcut for testing - press 'X' to skip to victory animation (only in dev mode)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const isDevMode = urlParams.get('dev');
+    
+    if (!isDevMode) return;
+    
+    const handleKeyDown = (e) => {
+      if (e.key === 'x' || e.key === 'X') {
+        if (victoryPhase === 'none') {
+          clearTimers();
+          setShowConfetti(true);
+          setTimeout(() => {
+            setVictoryPhase('emoji-move');
+          }, 2000);
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [victoryPhase]);
+
+  // Victory animation sequence
+  useEffect(() => {
+    if (victoryPhase === 'emoji-move') {
+      // Emoji moves to center (5 seconds)
+      const timer = setTimeout(() => {
+        setVictoryPhase('envelope-swap');
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+
+    if (victoryPhase === 'envelope-swap') {
+      // Show envelope for 3 seconds before opening
+      const timer = setTimeout(() => {
+        setVictoryPhase('letter-open');
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+
+    if (victoryPhase === 'letter-open') {
+      // Letter opens and words start flying in
+      const timer = setTimeout(() => {
+        setVictoryPhase('words-fly-in');
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [victoryPhase]);
 
   const getCellClass = (row, col) => {
     const key = getCellKey(row, col);
@@ -309,21 +415,6 @@ export default function StrandsGame() {
     else className += ' default';
     
     return className;
-  };
-
-  const getCellCenter = (row, col) => {
-    if (!gridRef.current) return { x: 0, y: 0 };
-    const grid = gridRef.current.querySelector('.grid');
-    const cell = grid.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-    if (!cell) return { x: 0, y: 0 };
-    
-    const gridRect = grid.getBoundingClientRect();
-    const cellRect = cell.getBoundingClientRect();
-    
-    return {
-      x: cellRect.left - gridRect.left + cellRect.width / 2,
-      y: cellRect.top - gridRect.top + cellRect.height / 2
-    };
   };
 
   const renderLines = (cells, color) => {
@@ -350,8 +441,31 @@ export default function StrandsGame() {
 
   const isIntro = introPhase !== 'complete';
 
+  // Generate confetti pieces when shown - continuous falling
+  useEffect(() => {
+    if (showConfetti) {
+      const generatePieces = () => {
+        const pieces = Array.from({ length: 150 }, (_, i) => ({
+          id: i,
+          color: ['#FFDEE3', '#87CEEB', '#FFD700', '#FFFFFF', '#FFBBC1'][i % 5],
+          left: Math.random() * 100,
+          animationDelay: Math.random() * 5,
+          animationDuration: 6 + Math.random() * 3
+        }));
+        setConfettiPieces(pieces);
+      };
+      
+      generatePieces();
+      
+      // Regenerate confetti every 8 seconds to keep it falling continuously
+      const interval = setInterval(generatePieces, 8000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [showConfetti]);
+
   return (
-    <div className={`strands-game ${shake ? 'shake' : ''}`}>
+    <div className={`strands-game ${shake ? 'shake' : ''} ${victoryPhase !== 'none' ? 'victory' : ''}`}>
       {isIntro && (
         <div 
           className={`intro-envelope ${introPhase}`} 
@@ -369,7 +483,7 @@ export default function StrandsGame() {
         </div>
       )}
       
-      {introPhase === 'complete' && (
+      {introPhase === 'complete' && victoryPhase === 'none' && (
         <>
           <div className="game-header">
             <h1>💌</h1>
@@ -380,6 +494,7 @@ export default function StrandsGame() {
           
           <div className="grid-container" ref={gridRef}>
             <svg className="grid-lines">
+              {/* eslint-disable-next-line react-hooks/refs */}
               {foundPaths.map((path, index) => (
                 <g key={`found-${index}`}>
                   {renderLines(path.cells, path.isSpangram ? '#DAA520' : '#5DADE2')}
@@ -387,6 +502,7 @@ export default function StrandsGame() {
               ))}
               {isDragging && tempPath.length > 1 && (
                 <g>
+                  {/* eslint-disable-next-line react-hooks/refs */}
                   {renderLines(tempPath, '#808080')}
                 </g>
               )}
@@ -448,6 +564,53 @@ export default function StrandsGame() {
             )}
           </div>
         </>
+      )}
+      
+      {/* Victory Animations */}
+      {showConfetti && (
+        <div className="confetti-container">
+          {confettiPieces.map(piece => (
+            <div
+              key={piece.id}
+              className="confetti-piece"
+              style={{
+                '--left': `${piece.left}%`,
+                '--color': piece.color,
+                '--delay': `${piece.animationDelay}s`,
+                '--duration': `${piece.animationDuration}s`
+              }}
+            />
+          ))}
+        </div>
+      )}
+      
+      {victoryPhase !== 'none' && (
+        <div className={`victory-animations ${victoryPhase}`}>
+          <div className="victory-emoji">💌</div>
+          <div className="victory-envelope">✉️</div>
+          <div className="envelope-flap"></div>
+          <div className="victory-letter">
+            <div className="letter-content">
+              <div className="letter-line">Dear</div>
+              <div className={`letter-word letter-siddhi ${victoryPhase === 'words-fly-in' ? 'animate-in' : ''}`} style={{ '--delay': '0s' }}>SIDDHI</div>
+              <div className="letter-line">,</div>
+              <div className="letter-line"></div>
+              <div className={`letter-word letter-cupid ${victoryPhase === 'words-fly-in' ? 'animate-in' : ''}`} style={{ '--delay': '0.8s' }}>CUPID</div>
+              <div className="letter-line">said I'd be a fool</div>
+              <div className={`letter-word letter-tulip ${victoryPhase === 'words-fly-in' ? 'animate-in' : ''}`} style={{ '--delay': '1.6s' }}>TULIP</div>
+              <div className="letter-line">you go to</div>
+              <div className={`letter-word letter-puntacana ${victoryPhase === 'words-fly-in' ? 'animate-in' : ''}`} style={{ '--delay': '2.4s' }}>PUNTACANA</div>
+              <div className="letter-line">without asking...</div>
+              <div className="letter-line"></div>
+              <div className={`letter-word letter-spangram ${victoryPhase === 'words-fly-in' ? 'animate-in' : ''}`} style={{ '--delay': '3.2s' }}>BEMYVALENTINE</div>
+              <div className="letter-line">?</div>
+              <div className="letter-line"></div>
+              <div className={`letter-word letter-love ${victoryPhase === 'words-fly-in' ? 'animate-in' : ''}`} style={{ '--delay': '4s' }}>LOVE</div>
+              <div className="letter-line">,</div>
+              <div className={`letter-word letter-sameer ${victoryPhase === 'words-fly-in' ? 'animate-in' : ''}`} style={{ '--delay': '4.8s' }}>SAMEER</div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
