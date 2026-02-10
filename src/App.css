@@ -133,6 +133,11 @@
   50% { transform: scale(1.08); }
 }
 
+@keyframes titlePulse {
+  0%, 100% { transform: scale(0.8); }
+  50% { transform: scale(1.2); }
+}
+
 @keyframes expandRing {
   0% {
     transform: translate(-50%, -50%) scale(0.5);
@@ -179,12 +184,28 @@
   font-size: 4.5rem;
   margin: 0 0 0.25rem 0;
   color: #000;
+  animation: titlePulse 2s ease-in-out infinite;
 }
 
 .theme {
   font-size: 1rem;
   color: #666;
-  margin: 0 0 2rem 0;
+  margin: 2rem 0 2rem 0;
+  transition: opacity 0.5s ease, font-weight 0.3s ease, transform 0.3s ease;
+}
+
+.theme.hidden {
+  opacity: 0;
+}
+
+.theme.visible {
+  opacity: 1;
+}
+
+.theme.word-found {
+  font-weight: 700;
+  transform: scale(1.05);
+  transition: font-weight 0.3s ease, transform 0.3s ease;
 }
 
 @keyframes fadeInUp {

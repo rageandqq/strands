@@ -16,9 +16,36 @@ const THEME_WORDS = ['SAMEER', 'SIDDHI', 'TULIP', 'CUPID', 'PUNTACANA', 'LOVE'];
 const SPANGRAM = 'BEMYVALENTINE';
 const ALL_WORDS = [...THEME_WORDS, SPANGRAM];
 
+const ROTATING_PHRASES = [
+  (count) => `${count} of ${ALL_WORDS.length} words found`,
+  () => "You got this!",
+  () => "Think inside the box",
+  () => "Don't forget, you really ARE clever!",
+  () => "P.S. I love you",
+  () => "Love is in the letters",
+  () => "Spoiler: The answer is love",
+  () => "I wouldn't mind being STRANDed with you",
+  () => "You're doing great, sweetie",
+  () => "Follow your heart"
+];
+
+// Create a shuffled array of phrase indices (excluding index 0 which is the count)
+const createShuffledIndices = () => {
+  const indices = Array.from({ length: ROTATING_PHRASES.length - 1 }, (_, i) => i + 1);
+  // Fisher-Yates shuffle
+  for (let i = indices.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indices[i], indices[j]] = [indices[j], indices[i]];
+  }
+  return indices;
+};
+
 export default function StrandsGame() {
+  // Intro animation state - starts with 'intro' which triggers CSS spinAndGrow animation
   const [introPhase, setIntroPhase] = useState('intro');
   const [showClickPulse, setShowClickPulse] = useState(false);
+  
+  // Game state
   const [selectedCells, setSelectedCells] = useState([]);
   const [foundWords, setFoundWords] = useState([]);
   const [cellStates, setCellStates] = useState({});
@@ -27,27 +54,118 @@ export default function StrandsGame() {
   const [shake, setShake] = useState(false);
   const [foundPaths, setFoundPaths] = useState([]);
   const [tempPath, setTempPath] = useState([]);
+  
+  // Rotating phrase state
+  const [phraseIndex, setPhraseIndex] = useState(0);
+  const [availableIndices, setAvailableIndices] = useState(() => createShuffledIndices());
+  const [isPhraseVisible, setIsPhraseVisible] = useState(true);
+  const [isWordFound, setIsWordFound] = useState(false);
+  
+  // Refs
   const gridRef = useRef(null);
+  const timerRef = useRef(null);
+  const boldTimerRef = useRef(null);
 
-  // Intro animation - spin and grow from center
+  // Clear all phrase rotation timers to prevent conflicts
+  const clearTimers = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (boldTimerRef.current) clearTimeout(boldTimerRef.current);
+  };
+
+  // Get the next random phrase from the shuffled pool
+  const getNextRandomPhrase = () => {
+    setAvailableIndices(prev => {
+      if (prev.length === 0) {
+        // All phrases shown, create new shuffled pool
+        const newShuffled = createShuffledIndices();
+        setPhraseIndex(newShuffled[0]);
+        return newShuffled.slice(1);
+      } else {
+        // Pick next random phrase
+        setPhraseIndex(prev[0]);
+        return prev.slice(1);
+      }
+    });
+  };
+
+  // Schedule the next phrase in the rotation sequence
+  const scheduleNextPhrase = () => {
+    const nextDelay = 5000 + Math.random() * 3000;
+    
+    timerRef.current = setTimeout(() => {
+      setIsPhraseVisible(false);
+      
+      timerRef.current = setTimeout(() => {
+        getNextRandomPhrase();
+        setIsPhraseVisible(true);
+        scheduleNextPhrase();
+      }, 500);
+    }, nextDelay);
+  };
+
+  // Intro animation - after 3s of spinAndGrow, transition to hovering state
   useEffect(() => {
     if (introPhase === 'intro') {
       const timer = setTimeout(() => {
         setIntroPhase('hovering');
-      }, 3000); // 3s for spin and grow animation
+      }, 3000);
       return () => clearTimeout(timer);
     }
   }, [introPhase]);
 
-  const handleEnvelopeClick = () => {
-    if (introPhase === 'hovering') {
-      setShowClickPulse(true);
-      setIntroPhase('transitioning');
+  // Start rotation when game begins
+  useEffect(() => {
+    if (introPhase === 'complete') {
+      timerRef.current = setTimeout(() => {
+        setIsPhraseVisible(false);
+        
+        timerRef.current = setTimeout(() => {
+          // Start with first random phrase
+          getNextRandomPhrase();
+          setIsPhraseVisible(true);
+          scheduleNextPhrase();
+        }, 500);
+      }, 5000);
       
-      setTimeout(() => {
-        setIntroPhase('complete');
-      }, 800);
+      return () => clearTimers();
     }
+  }, [introPhase]);
+
+  // When a word is found, reset to count
+  useEffect(() => {
+    if (foundWords.length > 0 && introPhase === 'complete') {
+      clearTimers();
+      
+      setPhraseIndex(0);
+      setIsPhraseVisible(true);
+      setIsWordFound(true);
+      
+      boldTimerRef.current = setTimeout(() => {
+        setIsWordFound(false);
+      }, 2000);
+      
+      // After bold fades, continue rotation with random phrase
+      timerRef.current = setTimeout(() => {
+        setIsPhraseVisible(false);
+        
+        timerRef.current = setTimeout(() => {
+          // Pick a random phrase to continue with
+          getNextRandomPhrase();
+          setIsPhraseVisible(true);
+          scheduleNextPhrase();
+        }, 500);
+      }, 3000);
+    }
+  }, [foundWords.length, introPhase]);
+
+  const handleEnvelopeClick = () => {
+    clearTimers();
+    setShowClickPulse(true);
+    setIntroPhase('transitioning');
+    
+    setTimeout(() => {
+      setIntroPhase('complete');
+    }, 800);
   };
 
   const getCellKey = (row, col) => `${row},${col}`;
@@ -68,7 +186,6 @@ export default function StrandsGame() {
     setSelectedCells(prev => {
       const lastCell = prev[prev.length - 1];
       
-      // If going back to previous cell, remove last
       if (prev.length >= 2) {
         const prevCell = prev[prev.length - 2];
         if (prevCell[0] === row && prevCell[1] === col) {
@@ -79,11 +196,9 @@ export default function StrandsGame() {
         }
       }
       
-      // Check if already selected
       const alreadySelected = prev.some(([r, c]) => r === row && c === col);
       if (alreadySelected) return prev;
       
-      // Check adjacency
       if (lastCell && !isAdjacent(lastCell[0], lastCell[1], row, col)) {
         return prev;
       }
@@ -110,20 +225,17 @@ export default function StrandsGame() {
     const word = currentWord;
     const reversedWord = word.split('').reverse().join('');
     
-    // Check if word is already found
     if (foundWords.includes(word) || foundWords.includes(reversedWord)) {
       setSelectedCells([]);
       setCurrentWord('');
       return;
     }
     
-    // Check if it's a valid word
     const isValidWord = ALL_WORDS.includes(word) || ALL_WORDS.includes(reversedWord);
     const actualWord = ALL_WORDS.includes(word) ? word : 
                       ALL_WORDS.includes(reversedWord) ? reversedWord : word;
     
     if (isValidWord) {
-      // Mark cells as found
       const isSpangram = actualWord === SPANGRAM;
       const newCellStates = { ...cellStates };
       
@@ -136,7 +248,6 @@ export default function StrandsGame() {
       setFoundWords(prev => [...prev, actualWord]);
       setFoundPaths(prev => [...prev, { cells: [...selectedCells], isSpangram }]);
     } else if (word.length >= 3) {
-      // Invalid word - shake and mark gray temporarily
       setShake(true);
       const newCellStates = { ...cellStates };
       
@@ -168,7 +279,6 @@ export default function StrandsGame() {
     setCurrentWord('');
   }, [isDragging, currentWord, selectedCells, cellStates, foundWords]);
 
-  // Global mouse/touch up handler
   useEffect(() => {
     const handleGlobalUp = () => {
       if (isDragging) {
@@ -201,7 +311,6 @@ export default function StrandsGame() {
     return className;
   };
 
-  // Calculate cell centers for drawing lines
   const getCellCenter = (row, col) => {
     if (!gridRef.current) return { x: 0, y: 0 };
     const grid = gridRef.current.querySelector('.grid');
@@ -239,7 +348,6 @@ export default function StrandsGame() {
     return lines;
   };
 
-  // Intro envelope phase
   const isIntro = introPhase !== 'complete';
 
   return (
@@ -265,18 +373,18 @@ export default function StrandsGame() {
         <>
           <div className="game-header">
             <h1>💌</h1>
-            <p className="theme">{foundWords.length} of {ALL_WORDS.length} words found</p>
+            <p className={`theme ${isPhraseVisible ? 'visible' : 'hidden'} ${isWordFound ? 'word-found' : ''}`}>
+              {ROTATING_PHRASES[phraseIndex](foundWords.length)}
+            </p>
           </div>
           
           <div className="grid-container" ref={gridRef}>
             <svg className="grid-lines">
-              {/* Render lines for found words */}
               {foundPaths.map((path, index) => (
                 <g key={`found-${index}`}>
                   {renderLines(path.cells, path.isSpangram ? '#DAA520' : '#5DADE2')}
                 </g>
               ))}
-              {/* Render lines for current selection */}
               {isDragging && tempPath.length > 1 && (
                 <g>
                   {renderLines(tempPath, '#808080')}
