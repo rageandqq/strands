@@ -3,9 +3,9 @@ import './App.css';
 
 const GRID = [
   ['N', 'E', 'R', 'E', 'M', 'A'],
-  ['T', 'I', 'T', 'N', 'E', 'S'],
-  ['L', 'U', 'L', 'E', 'A', 'A'],
-  ['I', 'P', 'A', 'C', 'A', 'N'],
+  ['P', 'I', 'T', 'N', 'E', 'S'],
+  ['U', 'I', 'L', 'E', 'A', 'A'],
+  ['L', 'T', 'A', 'C', 'A', 'N'],
   ['V', 'O', 'L', 'V', 'T', 'N'],
   ['I', 'E', 'Y', 'D', 'P', 'U'],
   ['D', 'S', 'M', 'I', 'P', 'U'],
@@ -272,20 +272,17 @@ export default function StrandsGame() {
     setTempPath([]);
     
     const word = currentWord;
-    const reversedWord = word.split('').reverse().join('');
     
-    if (foundWords.includes(word) || foundWords.includes(reversedWord)) {
+    if (foundWords.includes(word)) {
       setSelectedCells([]);
       setCurrentWord('');
       return;
     }
     
-    const isValidWord = ALL_WORDS.includes(word) || ALL_WORDS.includes(reversedWord);
-    const actualWord = ALL_WORDS.includes(word) ? word : 
-                      ALL_WORDS.includes(reversedWord) ? reversedWord : word;
+    const isValidWord = ALL_WORDS.includes(word);
     
     if (isValidWord) {
-      const isSpangram = actualWord === SPANGRAM;
+      const isSpangram = word === SPANGRAM;
       const newCellStates = { ...cellStates };
       
       selectedCells.forEach(([row, col]) => {
@@ -294,7 +291,7 @@ export default function StrandsGame() {
       });
       
       setCellStates(newCellStates);
-      setFoundWords(prev => [...prev, actualWord]);
+      setFoundWords(prev => [...prev, word]);
       setFoundPaths(prev => [...prev, { cells: [...selectedCells], isSpangram }]);
     } else if (word.length >= 3) {
       setShake(true);
