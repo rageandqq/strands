@@ -566,26 +566,15 @@ export default function StrandsGame() {
             <div className={`found-words ${victoryPhase !== 'none' ? 'victory-words' : ''}`}>
               {foundWords.length > 0 && <h2>Words Found</h2>}
               <div className="words-list">
-                {victoryPhase === 'none' ? (
-                  foundWords.map(word => (
-                    <span 
-                      key={word} 
-                      className={`word-tag ${word === SPANGRAM ? 'spangram' : 'found'}`}
-                    >
-                      {word}
-                    </span>
-                  ))
-                ) : (
-                  ALL_WORDS.map((word) => (
-                    <span 
-                      key={word}
-                      className={`word-tag victory-word ${word === SPANGRAM ? 'spangram' : 'found'}`}
-                      data-word={word}
-                    >
-                      {word}
-                    </span>
-                  ))
-                )}
+                {foundWords.map(word => (
+                  <span 
+                    key={word} 
+                    className={`word-tag ${victoryPhase !== 'none' ? 'victory-word' : ''} ${word === SPANGRAM ? 'spangram' : 'found'}`}
+                    data-word={word}
+                  >
+                    {word}
+                  </span>
+                ))}
               </div>
             </div>
           </div>

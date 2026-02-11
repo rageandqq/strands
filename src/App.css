@@ -387,9 +387,20 @@
 /* Word bank fades out when showWordBank is false (after letter opens but before words fly in) */
 .strands-game.victory .found-words-container.hidden,
 .strands-game.victory .found-words-container.hidden .found-words {
-  opacity: 0 !important;
-  animation: none !important;
-  transition: opacity 0.8s ease-out !important;
+  opacity: 0;
+  transform: translateY(-50px);
+  animation: wordBankFadeOut 0.8s ease-out forwards !important;
+}
+
+@keyframes wordBankFadeOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
 }
 
 @keyframes fadeOut {
@@ -456,7 +467,7 @@
 
 .victory-emoji {
   position: fixed;
-  top: calc(1rem + 60px); /* Account for header height */
+  top: calc(1rem + 60px + env(safe-area-inset-top));
   left: 50%;
   transform: translateX(-50%);
   font-size: 4.5rem;
@@ -469,7 +480,7 @@
 
 @keyframes emojiToCenter {
   0% {
-    top: calc(1rem + 60px);
+    top: calc(1rem + 60px + env(safe-area-inset-top));
     left: 50%;
     transform: translateX(-50%) scale(1);
     opacity: 1;
