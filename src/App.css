@@ -1,13 +1,19 @@
 .strands-game {
+  width: 100%;
+  min-height: 100svh;
+  position: relative;
+  overflow: hidden;
+}
+
+.strands-content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 0.5rem;
-  width: 100%;
-  min-height: 100vh;
-  position: relative;
-  overflow: hidden;
+  justify-content: flex-start;
+  min-height: 100%;
+  padding: calc(3rem + env(safe-area-inset-top)) 0.5rem calc(1rem + env(safe-area-inset-bottom));
+  box-sizing: content-box;
+  flex: 1;
 }
 
 /* Intro Envelope Styles */
@@ -155,7 +161,7 @@
     opacity: 1;
   }
   100% {
-    transform: translate(-50%, -40vh) scale(0.8);
+    transform: translate(-50%, -40svh) scale(0.8);
     opacity: 0;
   }
 }
@@ -175,14 +181,15 @@
 .game-header {
   text-align: center;
   margin-bottom: 0.5rem;
+  padding-top: calc(env(safe-area-inset-top));
   animation: fadeInUp 0.4s ease-out forwards;
   animation-delay: 0.2s;
   opacity: 0;
 }
 
 .game-header h1 {
-  font-size: 4.5rem;
-  margin: 0 0 0.25rem 0;
+  font-size: 4rem;
+  margin: 0;
   color: #000;
   animation: titlePulse 2s ease-in-out infinite;
 }
@@ -190,7 +197,7 @@
 .theme {
   font-size: 1rem;
   color: #666;
-  margin: 2rem 0 2rem 0;
+  margin: 0rem 0 0.5rem 0;
   transition: opacity 0.5s ease, font-weight 0.3s ease, transform 0.3s ease;
 }
 
@@ -432,7 +439,7 @@
     opacity: 0.8;
   }
   100% {
-    transform: translateY(100vh) rotate(720deg);
+    transform: translateY(100svh) rotate(720deg);
     opacity: 0;
   }
 }
@@ -531,7 +538,7 @@
   width: 600px;
   max-width: 90vw;
   height: 500px;
-  max-height: 80vh;
+  max-height: 80svh;
   background: white;
   border-radius: 8px;
   box-shadow: 0 10px 40px rgba(0,0,0,0.2);

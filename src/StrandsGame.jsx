@@ -498,7 +498,7 @@ export default function StrandsGame() {
       )}
       
       {introPhase === 'complete' && (
-        <>
+        <div className="strands-content">
           {/* Game UI - always rendered, fades out during victory */}
           <div className={`game-header ${victoryPhase !== 'none' ? 'victory-hidden' : ''}`}>
             <h1>💌</h1>
@@ -589,7 +589,7 @@ export default function StrandsGame() {
               </div>
             </div>
           </div>
-        </>
+        </div>
       )}
       
       {/* Victory Animations */}
