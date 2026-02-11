@@ -16,6 +16,8 @@ const THEME_WORDS = ['SAMEER', 'SIDDHI', 'TULIP', 'CUPID', 'PUNTACANA', 'LOVE'];
 const SPANGRAM = 'BEMYVALENTINE';
 const ALL_WORDS = [...THEME_WORDS, SPANGRAM];
 
+const NO_BUTTON_PHRASES = ['IDK', 'MAYBE?', 'NOPE', 'HMMM..', 'UHHH', 'UNCLEAR', 'NAH'];
+
 const ROTATING_PHRASES = [
   (count) => `${count} of ${ALL_WORDS.length} words found`,
   () => "You got this!",
@@ -67,6 +69,11 @@ export default function StrandsGame() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [confettiPieces, setConfettiPieces] = useState([]);
   const [showWordBank, setShowWordBank] = useState(true);
+  
+  // Letter button state
+  const [noClickCount, setNoClickCount] = useState(0);
+  const [yesHighlighted, setYesHighlighted] = useState(false);
+  const [yesClicked, setYesClicked] = useState(false);
   
   // Refs
   const gridRef = useRef(null);
@@ -415,6 +422,53 @@ export default function StrandsGame() {
     }
   }, [victoryPhase]);
 
+  // Letter button handlers
+  const handleYes = useCallback(() => {
+    setYesClicked(true);
+    setYesHighlighted(false);
+    
+    // Replay confetti
+    setShowConfetti(false);
+    setTimeout(() => {
+      setShowConfetti(true);
+      const generatePieces = () => {
+        const pieces = Array.from({ length: 150 }, (_, i) => ({
+          id: i,
+          color: ['#FFDEE3', '#87CEEB', '#FFD700', '#FFFFFF', '#FFBBC1'][i % 5],
+          left: Math.random() * 100,
+          animationDelay: Math.random() * 5,
+          animationDuration: 6 + Math.random() * 3
+        }));
+        setConfettiPieces(pieces);
+      };
+      generatePieces();
+    }, 100);
+  }, []);
+
+  const handleNo = useCallback(() => {
+    setNoClickCount(prev => prev + 1);
+    
+    // Shake button effect
+    const btn = document.querySelector('.btn-no');
+    if (btn) {
+      btn.classList.add('shake');
+      setTimeout(() => btn.classList.remove('shake'), 500);
+    }
+    
+    // Highlight YES after 3 clicks
+    if (noClickCount >= 2) {
+      setYesHighlighted(true);
+    }
+  }, [noClickCount]);
+
+  const handleReplay = useCallback(() => {
+    window.location.reload();
+  }, []);
+
+  const getNoButtonText = useCallback(() => {
+    return NO_BUTTON_PHRASES[noClickCount % NO_BUTTON_PHRASES.length];
+  }, [noClickCount]);
+
   const getCellClass = (row, col) => {
     const key = getCellKey(row, col);
     const isSelected = selectedCells.some(([r, c]) => r === row && c === col);
@@ -644,6 +698,32 @@ export default function StrandsGame() {
               </div>
             </div>
           </div>
+          
+          {/* YES/NO/REPLAY Buttons - appear after words fly in */}
+          {victoryPhase === 'words-fly-in' && (
+            <div className="letter-buttons">
+              <button 
+                className={`letter-btn btn-yes ${yesHighlighted ? 'highlighted' : ''}`}
+                onClick={handleYes}
+              >
+                YES
+              </button>
+              {!yesClicked && (
+                <button 
+                  className="letter-btn btn-no"
+                  onClick={handleNo}
+                >
+                  {getNoButtonText()}
+                </button>
+              )}
+              <button 
+                className="letter-btn btn-replay"
+                onClick={handleReplay}
+              >
+                REPLAY
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -690,6 +690,97 @@
   display: inline-block;
 }
 
+/* Letter Buttons */
+.letter-buttons {
+  position: fixed;
+  bottom: calc(5% + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 10px;
+  pointer-events: auto;
+  z-index: 1000;
+  opacity: 0;
+  animation: buttonsFadeIn 0.5s ease-out 6s forwards;
+}
+
+@keyframes buttonsFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.letter-btn {
+  border: none;
+  border-radius: 50px;
+  padding: 0.5rem 1.25rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  font-family: 'Roboto', Arial, sans-serif;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+  min-width: 85px;
+  text-align: center;
+}
+
+.letter-btn.btn-yes {
+  background: #FF6F77;
+  color: white;
+}
+
+.letter-btn.btn-no {
+  background: #FF8896;
+  color: white;
+}
+
+.letter-btn.btn-replay {
+  background: #C00000;
+  color: white;
+}
+
+.letter-btn.btn-yes.highlighted {
+  animation: yesRadialPulse 2s ease-in-out infinite;
+}
+
+@keyframes yesRadialPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 187, 193, 0.9), 0 0 25px rgba(255, 187, 193, 0.5);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 20px rgba(255, 187, 193, 0), 0 0 40px rgba(255, 187, 193, 0.4);
+    transform: scale(1.08);
+  }
+}
+
+.letter-btn.btn-no.shake {
+  animation: btnShake 0.5s ease-in-out;
+  background: #808080;
+}
+
+@keyframes btnShake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-5px); }
+  40%, 80% { transform: translateX(5px); }
+}
+
+.word-tag.spinning {
+  animation: spinWords 0.6s ease-in-out;
+}
+
+@keyframes spinWords {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 @media (max-width: 480px) {
   .cell {
     font-size: 26px;
