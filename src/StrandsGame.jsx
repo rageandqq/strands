@@ -2,8 +2,8 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import './App.css';
 
 const GRID = [
-  ['N', 'E', 'R', 'E', 'M', 'A'],
-  ['P', 'I', 'T', 'N', 'E', 'S'],
+  ['N', 'E', 'R', 'E', 'E', 'A'],
+  ['P', 'I', 'T', 'N', 'M', 'S'],
   ['U', 'I', 'L', 'E', 'A', 'A'],
   ['L', 'T', 'A', 'C', 'A', 'N'],
   ['V', 'O', 'L', 'V', 'T', 'N'],
