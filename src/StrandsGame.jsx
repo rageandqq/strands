@@ -2,13 +2,13 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import './App.css';
 
 const GRID = [
-  ['N', 'E', 'R', 'E', 'E', 'A'],
-  ['P', 'I', 'T', 'N', 'M', 'S'],
-  ['U', 'I', 'L', 'E', 'A', 'A'],
-  ['L', 'T', 'A', 'C', 'A', 'N'],
+  ['N', 'I', 'R', 'E', 'A', 'M'],
+  ['P', 'E', 'T', 'N', 'E', 'S'],
+  ['I', 'L', 'L', 'E', 'A', 'A'],
+  ['U', 'T', 'A', 'C', 'A', 'N'],
   ['V', 'O', 'L', 'V', 'T', 'N'],
-  ['I', 'E', 'Y', 'D', 'P', 'U'],
-  ['D', 'S', 'M', 'I', 'P', 'U'],
+  ['I', 'E', 'Y', 'I', 'D', 'U'],
+  ['D', 'S', 'M', 'P', 'U', 'P'],
   ['D', 'H', 'I', 'E', 'B', 'C']
 ];
 
